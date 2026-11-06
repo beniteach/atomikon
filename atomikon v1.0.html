@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ÁtomoLab 3º ESO - Configuración Electrónica y Tabla Periódica</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .mono { font-family: 'JetBrains+Mono', monospace; }
+    .ptable-grid {
+      display: grid;
+      grid-template-columns: repeat(18, minmax(0, 1fr));
+      gap: 2px;
+    }
+    .orbit {
+      border: 2px dashed rgba(71, 85, 105, 0.3);
+      border-radius: 50%;
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+    .electron {
+      position: absolute;
+      width: 12px; height: 12px;
+      background-color: #2563eb;
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 6px rgba(37, 99, 235, 0.6);
+      transition: all 0.3s ease;
+    }
+    .element-card {
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+    .element-card:hover {
+      transform: scale(1.15);
+      z-index: 30;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-900 min-h-screen flex flex-col">
+
+  <!-- ENCABEZADO -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="bg-blue-600 text-white p-2 rounded-xl shadow-md font-bold text-xl tracking-wider">
+          ⚛️ Atomikon
+        </div>
+        <div>
+          <h1 class="text-xl font-bold text-slate-900 leading-tight">Configuración Electrónica y Tabla Periódica</h1>
+          <p class="text-xs font-semibold text-blue-600">Física y Química • Beniteach</p>
+        </div>
+      </div>
+
+      <!-- NAVEGACIÓN PRINCIPAL -->
+      <nav class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+        <button id="nav-explorador" onclick="cambiarTab('explorador')" class="px-4 py-2 text-sm font-bold rounded-lg transition-all bg-white text-blue-700 shadow-sm">
+          🔍 Explorador Atómico
+        </button>
+        <button id="nav-desafio" onclick="cambiarTab('desafio')" class="px-4 py-2 text-sm font-bold rounded-lg transition-all text-slate-600 hover:text-slate-900">
+          🎯 Desafío Gamificado
+        </button>
+        <button id="nav-moeller" onclick="cambiarTab('moeller')" class="px-4 py-2 text-sm font-bold rounded-lg transition-all text-slate-600 hover:text-slate-900">
+          📐 Diagrama de Moeller
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 space-y-6">
+
+    <!-- ================= TAB 1: EXPLORADOR ATÓMICO ================= -->
+    <section id="tab-explorador" class="space-y-6">
+      <!-- PANEL TABLA PERIÓDICA COMPLETA -->
+      <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+        <div class="flex flex-wrap items-center justify-between mb-3 gap-2">
+          <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+            <span>🗺️ Tabla Periódica de los Elementos</span>
+            <span class="text-xs font-semibold text-slate-500 font-normal">(Haz clic en cualquier elemento de Z = 1 a 118)</span>
+          </h2>
+          <!-- Leyenda de colores -->
+          <div class="flex flex-wrap gap-2 text-[10px] font-bold">
+            <span class="px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300">Alcalinos</span>
+            <span class="px-2 py-0.5 rounded bg-yellow-100 text-yellow-900 border border-yellow-300">Alcalinotérreos</span>
+            <span class="px-2 py-0.5 rounded bg-sky-100 text-sky-900 border border-sky-300">Transición</span>
+            <span class="px-2 py-0.5 rounded bg-teal-100 text-teal-900 border border-teal-300">Otros Metales</span>
+            <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-900 border border-emerald-300">Semimetales</span>
+            <span class="px-2 py-0.5 rounded bg-indigo-100 text-indigo-900 border border-indigo-300">No Metales</span>
+            <span class="px-2 py-0.5 rounded bg-purple-100 text-purple-900 border border-purple-300">Halógenos</span>
+            <span class="px-2 py-0.5 rounded bg-rose-100 text-rose-900 border border-rose-300">Gases Nobles</span>
+            <span class="px-2 py-0.5 rounded bg-fuchsia-100 text-fuchsia-900 border border-fuchsia-300">Lantánidos/Actínidos</span>
+          </div>
+        </div>
+
+        <!-- GRID DE LA TABLA -->
+        <div class="overflow-x-auto pb-2">
+          <div id="ptable-grid" class="ptable-grid min-w-[900px]"></div>
+          
+          <!-- FILAS SEPARADAS DE LANTÁNIDOS Y ACTÍNIDOS (CORREGIDO) -->
+          <div class="mt-4 pt-3 border-t border-slate-200 flex flex-col gap-2 min-w-[900px]">
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] font-bold text-fuchsia-800 w-28 text-right shrink-0">Lantánidos (57-71):</span>
+              <div id="lanthanides-row" class="grid gap-1 flex-1" style="grid-template-columns: repeat(15, minmax(0, 1fr));"></div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] font-bold text-fuchsia-800 w-28 text-right shrink-0">Actínidos (89-103):</span>
+              <div id="actinides-row" class="grid gap-1 flex-1" style="grid-template-columns: repeat(15, minmax(0, 1fr));"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANEL DETALLE DEL ELEMENTO SELECCIONADO -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- COLUMNA IZQUIERDA: DATOS Y CONFIGURACIÓN -->
+        <div class="lg:col-span-6 space-y-6">
+          <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div class="flex items-start justify-between border-b border-slate-100 pb-4 mb-4">
+              <div>
+                <span id="exp-z-badge" class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-extrabold mono">Z = 17</span>
+                <h3 id="exp-nombre" class="text-3xl font-extrabold text-slate-900 mt-1">Cloro</h3>
+                <p id="exp-familia" class="text-sm font-semibold text-purple-700">Grupo 17 • Halógenos</p>
+              </div>
+              <div id="exp-simbolo-box" class="w-20 h-20 bg-purple-50 border-2 border-purple-300 rounded-2xl flex flex-col items-center justify-center shadow-inner">
+                <span id="exp-simbolo-z" class="text-xs font-bold text-purple-600 self-start ml-2 -mb-1">17</span>
+                <span id="exp-simbolo" class="text-3xl font-extrabold text-purple-900">Cl</span>
+              </div>
+            </div>
+
+            <!-- CARACTERÍSTICAS PRINCIPALES -->
+            <div class="grid grid-cols-2 gap-4 mb-6">
+              <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <span class="text-xs font-bold text-slate-500 uppercase block">Periodo (Nivel principal)</span>
+                <span id="exp-periodo" class="text-2xl font-black text-slate-800">3</span>
+                <span class="text-xs text-slate-500 block mt-1">Indica 3 capas de electrones ocupadas</span>
+              </div>
+              <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <div class="flex justify-between items-start">
+                  <span class="text-xs font-bold text-slate-500 uppercase block">Grupo / Columna</span>
+                  <span id="exp-grupo-badge" class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-[10px] font-bold">Bloque p</span>
+                </div>
+                <span id="exp-grupo" class="text-2xl font-black text-slate-800">17</span>
+                <span id="exp-valencia-desc" class="text-xs text-slate-500 block mt-1">7 electrones de valencia</span>
+              </div>
+            </div>
+
+            <!-- CONFIGURACIÓN ELECTRONICA MOELLER -->
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-slate-700 uppercase tracking-wider flex justify-between">
+                <span>Configuración Electrónica (Moeller)</span>
+                <span class="text-blue-600">Subniveles s, p, d, f</span>
+              </label>
+              <div id="exp-moeller-text" class="p-4 bg-slate-900 text-emerald-400 font-mono text-base rounded-xl border border-slate-800 shadow-inner break-all font-bold">
+                1s² 2s² 2p⁶ 3s² 3p⁵
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- COLUMNA DERECHA: MODELO ATÓMICO VISUAL DE BOHR -->
+        <div class="lg:col-span-6">
+          <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col items-center justify-center min-h-[420px] relative overflow-hidden">
+            <h4 class="absolute top-4 left-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
+              Representación Visual de Capas
+            </h4>
+            
+            <!-- CONTENEDOR ÁTOMO BOHR -->
+            <div id="bohr-container" class="relative w-[320px] h-[320px] flex items-center justify-center my-4">
+              <div id="bohr-nucleus" class="w-16 h-16 bg-gradient-to-tr from-red-500 to-amber-500 rounded-full flex flex-col items-center justify-center text-white shadow-lg z-20 border-2 border-white">
+                <span id="bohr-nucleus-symbol" class="text-lg font-black leading-none">Cl</span>
+                <span id="bohr-nucleus-z" class="text-[10px] font-bold opacity-90">p⁺ = 17</span>
+              </div>
+            </div>
+
+            <div id="bohr-capas-info" class="flex flex-wrap justify-center gap-2 text-xs font-semibold text-slate-600 mt-2"></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- ================= TAB 2: DESAFÍO GAMIFICADO ================= -->
+    <section id="tab-desafio" class="hidden space-y-6">
+      
+      <!-- MARCADOR SUPERIOR GAMIFICADO -->
+      <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-6">
+          <div class="flex items-center gap-2">
+            <span class="text-2xl">❤️</span>
+            <div>
+              <span class="text-xs text-slate-500 font-bold block uppercase">Vidas</span>
+              <span id="quiz-vidas" class="text-lg font-black text-rose-600">3 / 3</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 border-l border-slate-200 pl-6">
+            <span class="text-2xl">⭐</span>
+            <div>
+              <span class="text-xs text-slate-500 font-bold block uppercase">Puntos XP</span>
+              <span id="quiz-puntos" class="text-lg font-black text-amber-600">0</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 border-l border-slate-200 pl-6">
+            <span class="text-2xl">🔥</span>
+            <div>
+              <span class="text-xs text-slate-500 font-bold block uppercase">Racha</span>
+              <span id="quiz-racha" class="text-lg font-black text-orange-500">0</span>
+            </div>
+          </div>
+        </div>
+
+        <button onclick="reiniciarJuego()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all border border-slate-300">
+          🔄 Reiniciar Partida
+        </button>
+      </div>
+
+      <!-- TARJETA DEL PREGUNTADOR -->
+      <div class="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-200 space-y-6 max-w-4xl mx-auto">
+        
+        <!-- ENUNCIADO OCULTANDO LA IDENTIDAD DEL ELEMENTO (CORREGIDO) -->
+        <div class="bg-blue-50 border-2 border-blue-200 rounded-2xl p-6 text-center space-y-2">
+          <span class="px-3 py-1 bg-blue-600 text-white rounded-full text-xs font-extrabold uppercase tracking-wide">Desafío Atómico</span>
+          <h2 id="quiz-enunciado" class="text-2xl md:text-3xl font-black text-slate-900">
+            Enigma Atómico: Z = ??
+          </h2>
+          <p id="quiz-subenunciado" class="text-sm font-semibold text-slate-600">
+            A partir únicamente de Z, deduce su configuración de Moeller, periodo, grupo, familia e identifica de qué elemento se trata.
+          </p>
+        </div>
+
+        <!-- FORMULARIO DE RESPUESTAS -->
+        <div class="space-y-6">
+          
+          <!-- 1. CONFIGURACIÓN ELECTRONICA INTERACTIVA -->
+          <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-3">
+            <div class="flex justify-between items-center">
+              <label class="text-xs font-extrabold text-slate-700 uppercase tracking-wider">
+                1. Configuración Electrónica (Moeller):
+              </label>
+              <button onclick="borrarUltimoSubnivel()" class="text-xs font-bold text-rose-600 hover:underline">
+                ⌫ Borrar último
+              </button>
+            </div>
+            
+            <div id="quiz-moeller-display" class="min-h-[52px] p-3 bg-white border-2 border-slate-300 rounded-xl font-mono text-lg font-bold text-blue-900 flex flex-wrap items-center gap-1 shadow-inner">
+              <span class="text-slate-400 text-sm font-sans font-normal italic">Haz clic en los subniveles de abajo...</span>
+            </div>
+
+            <div class="space-y-2 pt-1">
+              <span class="text-[11px] font-bold text-slate-500 uppercase block">Selecciona subnivel para añadir:</span>
+              <div class="flex flex-wrap gap-2" id="subnivel-buttons"></div>
+            </div>
+
+            <div id="electron-selector-modal" class="hidden p-4 bg-blue-900 text-white rounded-xl shadow-lg space-y-2 transition-all">
+              <div class="flex justify-between items-center">
+                <span id="selector-subnivel-title" class="text-xs font-bold font-mono text-yellow-300"></span>
+                <span class="text-[10px] text-blue-200">Elige del 1 al máximo permitido</span>
+              </div>
+              <div id="selector-num-buttons" class="flex flex-wrap gap-2"></div>
+            </div>
+          </div>
+
+          <!-- 2. PERIODO Y GRUPO -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+              <label class="text-xs font-extrabold text-slate-700 uppercase tracking-wider block">
+                2. Periodo (Fila 1 a 7):
+              </label>
+              <input type="number" id="quiz-input-periodo" min="1" max="7" placeholder="Ej: 3" class="w-full p-3 bg-white border-2 border-slate-300 rounded-xl font-bold text-slate-900 focus:border-blue-600 focus:outline-none">
+            </div>
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+              <label class="text-xs font-extrabold text-slate-700 uppercase tracking-wider block">
+                3. Grupo / Columna (1 a 18):
+              </label>
+              <input type="number" id="quiz-input-grupo" min="1" max="18" placeholder="Ej: 17" class="w-full p-3 bg-white border-2 border-slate-300 rounded-xl font-bold text-slate-900 focus:border-blue-600 focus:outline-none">
+            </div>
+          </div>
+
+          <!-- 3. FAMILIA Y ELEMENTO (NUEVO CAMPO AGREGADO) -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+              <label class="text-xs font-extrabold text-slate-700 uppercase tracking-wider block">
+                4. Nombre de la Familia:
+              </label>
+              <select id="quiz-select-familia" class="w-full p-3 bg-white border-2 border-slate-300 rounded-xl font-bold text-slate-900 focus:border-blue-600 focus:outline-none">
+                <option value="">-- Selecciona la familia --</option>
+                <option value="Alcalinos">Alcalinos (Grupo 1)</option>
+                <option value="Alcalinotérreos">Alcalinotérreos (Grupo 2)</option>
+                <option value="Metales de transición">Metales de transición (Grupos 3-12)</option>
+                <option value="Térreos / Boroideos">Térreos / Boroideos (Grupo 13)</option>
+                <option value="Carbonoideos">Carbonoideos (Grupo 14)</option>
+                <option value="Nitrogenoideos">Nitrogenoideos (Grupo 15)</option>
+                <option value="Anfígenos / Calcógenos">Anfígenos / Calcógenos (Grupo 16)</option>
+                <option value="Halógenos">Halógenos (Grupo 17)</option>
+                <option value="Gases nobles">Gases nobles (Grupo 18)</option>
+              </select>
+            </div>
+
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+              <label class="text-xs font-extrabold text-slate-700 uppercase tracking-wider block">
+                5. Elemento (Nombre o Símbolo):
+              </label>
+              <input type="text" id="quiz-input-elemento" placeholder="Ej: Cloro o Cl" class="w-full p-3 bg-white border-2 border-slate-300 rounded-xl font-bold text-slate-900 focus:border-blue-600 focus:outline-none">
+            </div>
+          </div>
+
+        </div>
+
+        <!-- MENSAJE DE FEEDBACK -->
+        <div id="quiz-feedback" class="hidden p-4 rounded-xl border-2 text-sm font-semibold space-y-1"></div>
+
+        <!-- BOTONES DE ACCIÓN -->
+        <div class="flex justify-end gap-3 pt-2">
+          <button id="btn-comprobar" onclick="validarRespuestaQuiz()" class="w-full md:w-auto px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5">
+            Comprobar Respuesta 🚀
+          </button>
+          <button id="btn-siguiente" onclick="siguientePreguntaQuiz()" class="hidden w-full md:w-auto px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black text-lg shadow-lg transition-all">
+            Siguiente Pregunta ➡️
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- ================= TAB 3: DIAGRAMA DE MOELLER ================= -->
+    <section id="tab-moeller" class="hidden space-y-6">
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 max-w-4xl mx-auto space-y-6">
+        <div>
+          <h2 class="text-2xl font-bold text-slate-900">Regla del Diagrama de Moeller</h2>
+          <p class="text-sm text-slate-600 mt-1">
+            Los electrones se distribuyen ocupando los subniveles en orden creciente de energía (siguiendo las diagonales de arriba a abajo y de derecha a izquierda).
+          </p>
+        </div>
+
+        <!-- REGLAS DE ORO PARA EL ALUMNO -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-1">
+            <span class="text-xs font-extrabold text-amber-800 uppercase block">1. Capacidad Máxima</span>
+            <p class="text-xs text-amber-900 font-semibold">
+              • Subnivel <strong>s</strong>: máximo <strong>2 e⁻</strong><br>
+              • Subnivel <strong>p</strong>: máximo <strong>6 e⁻</strong><br>
+              • Subnivel <strong>d</strong>: máximo <strong>10 e⁻</strong><br>
+              • Subnivel <strong>f</strong>: máximo <strong>14 e⁻</strong>
+            </p>
+          </div>
+          <div class="p-4 bg-blue-50 border border-blue-200 rounded-xl space-y-1">
+            <span class="text-xs font-extrabold text-blue-800 uppercase block">2. Sacar el Periodo</span>
+            <p class="text-xs text-blue-900 font-semibold">
+              El <strong>Periodo</strong> es el número más alto del coeficiente principal (n=1,2,3...) presente en la configuración.
+            </p>
+          </div>
+          <div class="p-4 bg-purple-50 border border-purple-200 rounded-xl space-y-1">
+            <span class="text-xs font-extrabold text-purple-800 uppercase block">3. Sacar el Grupo</span>
+            <p class="text-xs text-purple-900 font-semibold">
+              • Termina en s^1 pertenecerá al Grupo 1<br>
+              • Termina en s^2 pertenecerá al Grupo 2<br>
+              • Termina en p^x pertenecerá al Grupo "(10 + 2 + x) = 12 + x"
+            </p>
+          </div>
+        </div>
+
+        <!-- ESQUEMA VISUAL MOELLER -->
+        <div class="p-6 bg-slate-900 text-white rounded-2xl overflow-x-auto">
+          <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 text-center">Orden de Llenado de Subniveles</h3>
+          <div class="font-mono text-center space-y-3 text-lg">
+            <div class="flex justify-center gap-6"><span class="px-3 py-1 bg-red-600 rounded-lg">1s</span></div>
+
+            <div class="flex justify-center gap-6"><span class="px-3 py-1 bg-orange-500 rounded-lg">2s</span> <span class="px-3 py-1 bg-orange-500 rounded-lg">2p</span></div>
+
+            <div class="flex justify-center gap-6"><span class="px-3 py-1 bg-amber-500 rounded-lg">3s</span> <span class="px-3 py-1 bg-amber-500 rounded-lg">3p</span> </div>
+
+            <div class="flex justify-center gap-6"><span class="px-3 py-1 bg-emerald-600 rounded-lg">4s</span> <span class="px-3 py-1 bg-amber-500 rounded-lg">3d</span> <span class="px-3 py-1 bg-emerald-600 rounded-lg">4p</span></div>
+
+            <div class="flex justify-center gap-6"> <span class="px-3 py-1 bg-cyan-600 rounded-lg">5s</span> <span class="px-3 py-1 bg-emerald-600 rounded-lg">4d</span> <span class="px-3 py-1 bg-cyan-600 rounded-lg">5p</span> </div>
+
+	    <div class="flex justify-center gap-6"><span class="px-3 py-1 bg-purple-600 rounded-lg">6s</span> <span class="px-3 py-1 bg-emerald-600 rounded-lg">4f</span> <span class="px-3 py-1 bg-cyan-600 rounded-lg">5d</span> <span class="px-3 py-1 bg-purple-600 rounded-lg">6p</span> </div>
+
+            <div class="flex justify-center gap-6"> <span class="px-3 py-1 bg-pink-600 rounded-lg">7s</span> <span class="px-3 py-1 bg-cyan-600 rounded-lg">5f</span> <span class="px-3 py-1 bg-purple-600 rounded-lg">6d</span> <span class="px-3 py-1 bg-pink-600 rounded-lg">7p</span> </div>
+          </div>
+
+          <p class="text-center text-xs text-slate-400 mt-6 font-sans">
+            Ruta continua: 1s ➔ 2s ➔ 2p ➔ 3s ➔ 3p ➔ 4s ➔ 3d ➔ 4p ➔ 5s ➔ 4d ➔ 5p ➔ 6s ➔ 4f ➔ 5d ➔ 6p ➔ 7s ➔ 5f ➔ 6d ➔ 7p
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- LÓGICA DE LA APLICACIÓN (JAVASCRIPT) -->
+  <script>
+    const ELEMENTOS = [
+      { z: 1, s: "H", n: "Hidrógeno", g: 1, p: 1, cat: "ind", f: "No Metales" },
+      { z: 2, s: "He", n: "Helio", g: 18, p: 1, cat: "ros", f: "Gases nobles" },
+      { z: 3, s: "Li", n: "Litio", g: 1, p: 2, cat: "amb", f: "Alcalinos" },
+      { z: 4, s: "Be", n: "Berilio", g: 2, p: 2, cat: "yel", f: "Alcalinotérreos" },
+      { z: 5, s: "B", n: "Boro", g: 13, p: 2, cat: "eme", f: "Térreos / Boroideos" },
+      { z: 6, s: "C", n: "Carbono", g: 14, p: 2, cat: "ind", f: "Carbonoideos" },
+      { z: 7, s: "N", n: "Nitrógeno", g: 15, p: 2, cat: "ind", f: "Nitrogenoideos" },
+      { z: 8, s: "O", n: "Oxígeno", g: 16, p: 2, cat: "ind", f: "Anfígenos / Calcógenos" },
+      { z: 9, s: "F", n: "Flúor", g: 17, p: 2, cat: "pur", f: "Halógenos" },
+      { z: 10, s: "Ne", n: "Neón", g: 18, p: 2, cat: "ros", f: "Gases nobles" },
+      { z: 11, s: "Na", n: "Sodio", g: 1, p: 3, cat: "amb", f: "Alcalinos" },
+      { z: 12, s: "Mg", n: "Magnesio", g: 2, p: 3, cat: "yel", f: "Alcalinotérreos" },
+      { z: 13, s: "Al", n: "Aluminio", g: 13, p: 3, cat: "tea", f: "Térreos / Boroideos" },
+      { z: 14, s: "Si", n: "Silicio", g: 14, p: 3, cat: "eme", f: "Carbonoideos" },
+      { z: 15, s: "P", n: "Fósforo", g: 15, p: 3, cat: "ind", f: "Nitrogenoideos" },
+      { z: 16, s: "S", n: "Azufre", g: 16, p: 3, cat: "ind", f: "Anfígenos / Calcógenos" },
+      { z: 17, s: "Cl", n: "Cloro", g: 17, p: 3, cat: "pur", f: "Halógenos" },
+      { z: 18, s: "Ar", n: "Argón", g: 18, p: 3, cat: "ros", f: "Gases nobles" },
+      { z: 19, s: "K", n: "Potasio", g: 1, p: 4, cat: "amb", f: "Alcalinos" },
+      { z: 20, s: "Ca", n: "Calcio", g: 2, p: 4, cat: "yel", f: "Alcalinotérreos" },
+      { z: 21, s: "Sc", n: "Escandio", g: 3, p: 4, cat: "sky", f: "Metales de transición" },
+      { z: 22, s: "Ti", n: "Titanio", g: 4, p: 4, cat: "sky", f: "Metales de transición" },
+      { z: 23, s: "V", n: "Vanadio", g: 5, p: 4, cat: "sky", f: "Metales de transición" },
+      { z: 24, s: "Cr", n: "Cromo", g: 6, p: 4, cat: "sky", f: "Metales de transición" },
+      { z: 25, s: "Mn", n: "Manganeso", g: 7, p: 4, cat: "sky", f: "Metales de transición" },
+      { z: 26, s: "Fe", n: "Hierro", g: 8, p: 4, cat: "sky", f: "Metales de transición" },
+      { z: 27, s: "Co", n: "Cobalto", g: 9, p: 4, cat: "sky", f: "Metales de transición" },
+      { z: 28, s: "Ni", n: "Níquel", g: 10, p: 4, cat: "sky", f: "Metales de transición" },
+      { z: 29, s: "Cu", n: "Cobre", g: 11, p: 4, cat: "sky", f: "Metales de transición" },
+      { z: 30, s: "Zn", n: "Cinc", g: 12, p: 4, cat: "sky", f: "Metales de transición" },
+      { z: 31, s: "Ga", n: "Galio", g: 13, p: 4, cat: "tea", f: "Térreos / Boroideos" },
+      { z: 32, s: "Ge", n: "Germanio", g: 14, p: 4, cat: "eme", f: "Carbonoideos" },
+      { z: 33, s: "As", n: "Arsénico", g: 15, p: 4, cat: "eme", f: "Nitrogenoideos" },
+      { z: 34, s: "Se", n: "Selenio", g: 16, p: 4, cat: "ind", f: "Anfígenos / Calcógenos" },
+      { z: 35, s: "Br", n: "Bromo", g: 17, p: 4, cat: "pur", f: "Halógenos" },
+      { z: 36, s: "Kr", n: "Kriptón", g: 18, p: 4, cat: "ros", f: "Gases nobles" },
+      { z: 37, s: "Rb", n: "Rubidio", g: 1, p: 5, cat: "amb", f: "Alcalinos" },
+      { z: 38, s: "Sr", n: "Estroncio", g: 2, p: 5, cat: "yel", f: "Alcalinotérreos" },
+      { z: 39, s: "Y", n: "Itrio", g: 3, p: 5, cat: "sky", f: "Metales de transición" },
+      { z: 40, s: "Zr", n: "Circonio", g: 4, p: 5, cat: "sky", f: "Metales de transición" },
+      { z: 41, s: "Nb", n: "Niobio", g: 5, p: 5, cat: "sky", f: "Metales de transición" },
+      { z: 42, s: "Mo", n: "Molibdeno", g: 6, p: 5, cat: "sky", f: "Metales de transición" },
+      { z: 43, s: "Tc", n: "Tecnecio", g: 7, p: 5, cat: "sky", f: "Metales de transición" },
+      { z: 44, s: "Ru", n: "Rutenio", g: 8, p: 5, cat: "sky", f: "Metales de transición" },
+      { z: 45, s: "Rh", n: "Rodio", g: 9, p: 5, cat: "sky", f: "Metales de transición" },
+      { z: 46, s: "Pd", n: "Paladio", g: 10, p: 5, cat: "sky", f: "Metales de transición" },
+      { z: 47, s: "Ag", n: "Plata", g: 11, p: 5, cat: "sky", f: "Metales de transición" },
+      { z: 48, s: "Cd", n: "Cadmio", g: 12, p: 5, cat: "sky", f: "Metales de transición" },
+      { z: 49, s: "In", n: "Indio", g: 13, p: 5, cat: "tea", f: "Térreos / Boroideos" },
+      { z: 50, s: "Sn", n: "Estaño", g: 14, p: 5, cat: "tea", f: "Carbonoideos" },
+      { z: 51, s: "Sb", n: "Antimonio", g: 15, p: 5, cat: "eme", f: "Nitrogenoideos" },
+      { z: 52, s: "Te", n: "Teluro", g: 16, p: 5, cat: "eme", f: "Anfígenos / Calcógenos" },
+      { z: 53, s: "I", n: "Yodo", g: 17, p: 5, cat: "pur", f: "Halógenos" },
+      { z: 54, s: "Xe", n: "Xenón", g: 18, p: 5, cat: "ros", f: "Gases nobles" },
+      { z: 55, s: "Cs", n: "Cesio", g: 1, p: 6, cat: "amb", f: "Alcalinos" },
+      { z: 56, s: "Ba", n: "Bario", g: 2, p: 6, cat: "yel", f: "Alcalinotérreos" },
+      { z: 57, s: "La", n: "Lántano", g: 3, p: 6, cat: "fuc", f: "Lantánidos" },
+      { z: 58, s: "Ce", n: "Cerio", g: 3, p: 6, cat: "fuc", f: "Lantánidos" },
+      { z: 59, s: "Pr", n: "Praseodimio", g: 3, p: 6, cat: "fuc", f: "Lantánidos" },
+      { z: 60, s: "Nd", n: "Neodimio", g: 3, p: 6, cat: "fuc", f: "Lantánidos" },
+      { z: 61, s: "Pm", n: "Prometio", g: 3, p: 6, cat: "fuc", f: "Lantánidos" },
+      { z: 62, s: "Sm", n: "Samario", g: 3, p: 6, cat: "fuc", f: "Lantánidos" },
+      { z: 63, s: "Eu", n: "Europio", g: 3, p: 6, cat: "fuc", f: "Lantánidos" },
+      { z: 64, s: "Gd", n: "Gadolinio", g: 3, p: 6, cat: "fuc", f: "Lantánidos" },
+      { z: 65, s: "Tb", n: "Terbio", g: 3, p: 6, cat: "fuc", f: "Lantánidos" },
+      { z: 66, s: "Dy", n: "Disprosio", g: 3, p: 6, cat: "fuc", f: "Lantánidos" },
+      { z: 67, s: "Ho", n: "Holmio", g: 3, p: 6, cat: "fuc", f: "Lantánidos" },
+      { z: 68, s: "Er", n: "Erbio", g: 3, p: 6, cat: "fuc", f: "Lantánidos" },
+      { z: 69, s: "Tm", n: "Tulio", g: 3, p: 6, cat: "fuc", f: "Lantánidos" },
+      { z: 70, s: "Yb", n: "Iterbio", g: 3, p: 6, cat: "fuc", f: "Lantánidos" },
+      { z: 71, s: "Lu", n: "Lutecio", g: 3, p: 6, cat: "fuc", f: "Lantánidos" },
+      { z: 72, s: "Hf", n: "Hafnio", g: 4, p: 6, cat: "sky", f: "Metales de transición" },
+      { z: 73, s: "Ta", n: "Tántalo", g: 5, p: 6, cat: "sky", f: "Metales de transición" },
+      { z: 74, s: "W", n: "Wolframio", g: 6, p: 6, cat: "sky", f: "Metales de transición" },
+      { z: 75, s: "Re", n: "Renio", g: 7, p: 6, cat: "sky", f: "Metales de transición" },
+      { z: 76, s: "Os", n: "Osmio", g: 8, p: 6, cat: "sky", f: "Metales de transición" },
+      { z: 77, s: "Ir", n: "Iridio", g: 9, p: 6, cat: "sky", f: "Metales de transición" },
+      { z: 78, s: "Pt", n: "Platino", g: 10, p: 6, cat: "sky", f: "Metales de transición" },
+      { z: 79, s: "Au", n: "Oro", g: 11, p: 6, cat: "sky", f: "Metales de transición" },
+      { z: 80, s: "Hg", n: "Mercurio", g: 12, p: 6, cat: "sky", f: "Metales de transición" },
+      { z: 81, s: "Tl", n: "Talio", g: 13, p: 6, cat: "tea", f: "Térreos / Boroideos" },
+      { z: 82, s: "Pb", n: "Plomo", g: 14, p: 6, cat: "tea", f: "Carbonoideos" },
+      { z: 83, s: "Bi", n: "Bismuto", g: 15, p: 6, cat: "tea", f: "Nitrogenoideos" },
+      { z: 84, s: "Po", n: "Polonio", g: 16, p: 6, cat: "eme", f: "Anfígenos / Calcógenos" },
+      { z: 85, s: "At", n: "Astato", g: 17, p: 6, cat: "pur", f: "Halógenos" },
+      { z: 86, s: "Rn", n: "Radón", g: 18, p: 6, cat: "ros", f: "Gases nobles" },
+      { z: 87, s: "Fr", n: "Francio", g: 1, p: 7, cat: "amb", f: "Alcalinos" },
+      { z: 88, s: "Ra", n: "Radio", g: 2, p: 7, cat: "yel", f: "Alcalinotérreos" },
+      { z: 89, s: "Ac", n: "Actinio", g: 3, p: 7, cat: "fuc", f: "Actínidos" },
+      { z: 90, s: "Th", n: "Torio", g: 3, p: 7, cat: "fuc", f: "Actínidos" },
+      { z: 91, s: "Pa", n: "Protactinio", g: 3, p: 7, cat: "fuc", f: "Actínidos" },
+      { z: 92, s: "U", n: "Uranio", g: 3, p: 7, cat: "fuc", f: "Actínidos" },
+      { z: 93, s: "Np", n: "Neptunio", g: 3, p: 7, cat: "fuc", f: "Actínidos" },
+      { z: 94, s: "Pu", n: "Plutonio", g: 3, p: 7, cat: "fuc", f: "Actínidos" },
+      { z: 95, s: "Am", n: "Americio", g: 3, p: 7, cat: "fuc", f: "Actínidos" },
+      { z: 96, s: "Cm", n: "Curio", g: 3, p: 7, cat: "fuc", f: "Actínidos" },
+      { z: 97, s: "Bk", n: "Berkelio", g: 3, p: 7, cat: "fuc", f: "Actínidos" },
+      { z: 98, s: "Cf", n: "Californio", g: 3, p: 7, cat: "fuc", f: "Actínidos" },
+      { z: 99, s: "Es", n: "Einstenio", g: 3, p: 7, cat: "fuc", f: "Actínidos" },
+      { z: 100, s: "Fm", n: "Fermio", g: 3, p: 7, cat: "fuc", f: "Actínidos" },
+      { z: 101, s: "Md", n: "Mendelevio", g: 3, p: 7, cat: "fuc", f: "Actínidos" },
+      { z: 102, s: "No", n: "Nobelio", g: 3, p: 7, cat: "fuc", f: "Actínidos" },
+      { z: 103, s: "Lr", n: "Laurencio", g: 3, p: 7, cat: "fuc", f: "Actínidos" },
+      { z: 104, s: "Rf", n: "Rutherfordio", g: 4, p: 7, cat: "sky", f: "Metales de transición" },
+      { z: 105, s: "Db", n: "Dubnio", g: 5, p: 7, cat: "sky", f: "Metales de transición" },
+      { z: 106, s: "Sg", n: "Seaborgio", g: 6, p: 7, cat: "sky", f: "Metales de transición" },
+      { z: 107, s: "Bh", n: "Bohrio", g: 7, p: 7, cat: "sky", f: "Metales de transición" },
+      { z: 108, s: "Hs", n: "Hassio", g: 8, p: 7, cat: "sky", f: "Metales de transición" },
+      { z: 109, s: "Mt", n: "Meitnerio", g: 9, p: 7, cat: "sky", f: "Metales de transición" },
+      { z: 110, s: "Ds", n: "Darmstadtio", g: 10, p: 7, cat: "sky", f: "Metales de transición" },
+      { z: 111, s: "Rg", n: "Roentgenio", g: 11, p: 7, cat: "sky", f: "Metales de transición" },
+      { z: 112, s: "Cn", n: "Copernicio", g: 12, p: 7, cat: "sky", f: "Metales de transición" },
+      { z: 113, s: "Nh", n: "Nihonio", g: 13, p: 7, cat: "tea", f: "Térreos / Boroideos" },
+      { z: 114, s: "Fl", n: "Flerovio", g: 14, p: 7, cat: "tea", f: "Carbonoideos" },
+      { z: 115, s: "Mc", n: "Moscovio", g: 15, p: 7, cat: "tea", f: "Nitrogenoideos" },
+      { z: 116, s: "Lv", n: "Livermorio", g: 16, p: 7, cat: "tea", f: "Anfígenos / Calcógenos" },
+      { z: 117, s: "Ts", n: "Teneso", g: 17, p: 7, cat: "pur", f: "Halógenos" },
+      { z: 118, s: "Og", n: "Oganesón", g: 18, p: 7, cat: "ros", f: "Gases nobles" }
+    ];
+
+    const SUBNIVELES_MOELLER = [
+      { name: "1s", max: 2 },
+      { name: "2s", max: 2 },
+      { name: "2p", max: 6 },
+      { name: "3s", max: 2 },
+      { name: "3p", max: 6 },
+      { name: "4s", max: 2 },
+      { name: "3d", max: 10 },
+      { name: "4p", max: 6 },
+      { name: "5s", max: 2 },
+      { name: "4d", max: 10 },
+      { name: "5p", max: 6 },
+      { name: "6s", max: 2 },
+      { name: "4f", max: 14 },
+      { name: "5d", max: 10 },
+      { name: "6p", max: 6 },
+      { name: "7s", max: 2 },
+      { name: "5f", max: 14 },
+      { name: "6d", max: 10 },
+      { name: "7p", max: 6 }
+    ];
+
+    const COLOR_MAP = {
+      amb: { bg: "bg-amber-100", border: "border-amber-300", text: "text-amber-900" },
+      yel: { bg: "bg-yellow-100", border: "border-yellow-300", text: "text-yellow-900" },
+      sky: { bg: "bg-sky-100", border: "border-sky-300", text: "text-sky-900" },
+      tea: { bg: "bg-teal-100", border: "border-teal-300", text: "text-teal-900" },
+      eme: { bg: "bg-emerald-100", border: "border-emerald-300", text: "text-emerald-900" },
+      ind: { bg: "bg-indigo-100", border: "border-indigo-300", text: "text-indigo-900" },
+      pur: { bg: "bg-purple-100", border: "border-purple-300", text: "text-purple-900" },
+      ros: { bg: "bg-rose-100", border: "border-rose-300", text: "text-rose-900" },
+      fuc: { bg: "bg-fuchsia-100", border: "border-fuchsia-300", text: "text-fuchsia-900" }
+    };
+
+    function obtenerConfiguracionMoeller(z) {
+      let restantes = z;
+      let resultado = [];
+      for (let sub of SUBNIVELES_MOELLER) {
+        if (restantes <= 0) break;
+        let num = Math.min(restantes, sub.max);
+        resultado.push(`${sub.name}${convertirASuperindice(num)}`);
+        restantes -= num;
+      }
+      return resultado.join(" ");
+    }
+
+    function obtenerElectronesPorCapa(z) {
+      let restantes = z;
+      let capas = [0, 0, 0, 0, 0, 0, 0];
+      for (let sub of SUBNIVELES_MOELLER) {
+        if (restantes <= 0) break;
+        let nivelPrincipal = parseInt(sub.name[0]) - 1;
+        let num = Math.min(restantes, sub.max);
+        capas[nivelPrincipal] += num;
+        restantes -= num;
+      }
+      while (capas.length > 0 && capas[capas.length - 1] === 0) {
+        capas.pop();
+      }
+      return capas;
+    }
+
+    function convertirASuperindice(num) {
+      const supers = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹', '10': '¹⁰', '11': '¹¹', '12': '¹²', '13': '¹³', '14': '¹⁴' };
+      return supers[num] || num;
+    }
+
+    let elementoSeleccionado = 17;
+
+    function renderizarTablaPeriodica() {
+      const grid = document.getElementById('ptable-grid');
+      const lanRow = document.getElementById('lanthanides-row');
+      const actRow = document.getElementById('actinides-row');
+      
+      grid.innerHTML = '';
+      lanRow.innerHTML = '';
+      actRow.innerHTML = '';
+
+      const mapaPosiciones = {};
+      ELEMENTOS.forEach(el => {
+        if (el.z >= 57 && el.z <= 71) {
+          renderizarCeldaEnContenedor(el, lanRow);
+        } else if (el.z >= 89 && el.z <= 103) {
+          renderizarCeldaEnContenedor(el, actRow);
+        } else {
+          mapaPosiciones[`${el.p}-${el.g}`] = el;
+        }
+      });
+
+      for (let p = 1; p <= 7; p++) {
+        for (let g = 1; g <= 18; g++) {
+          const key = `${p}-${g}`;
+          if (mapaPosiciones[key]) {
+            renderizarCeldaEnContenedor(mapaPosiciones[key], grid);
+          } else {
+            const emptyCell = document.createElement('div');
+            grid.appendChild(emptyCell);
+          }
+        }
+      }
+    }
+
+    function renderizarCeldaEnContenedor(el, contenedor) {
+      const col = COLOR_MAP[el.cat] || COLOR_MAP.ind;
+      const card = document.createElement('button');
+      card.className = `element-card p-1 rounded flex flex-col items-center justify-between border ${col.bg} ${col.border} ${col.text} h-12 text-center relative font-bold`;
+      card.onclick = () => seleccionarElemento(el.z);
+      
+      card.innerHTML = `
+        <span class="text-[9px] opacity-75 self-start leading-none font-mono">${el.z}</span>
+        <span class="text-sm font-extrabold leading-none">${el.s}</span>
+        <span class="text-[8px] truncate max-w-full font-normal opacity-90 leading-none">${el.n}</span>
+      `;
+
+      if (el.z === elementoSeleccionado) {
+        card.classList.add('ring-2', 'ring-blue-600', 'ring-offset-1', 'z-20');
+      }
+
+      contenedor.appendChild(card);
+    }
+
+    function seleccionarElemento(z) {
+      elementoSeleccionado = z;
+      renderizarTablaPeriodica();
+      actualizarPanelExplorador();
+    }
+
+    function actualizarPanelExplorador() {
+      const el = ELEMENTOS.find(e => e.z === elementoSeleccionado);
+      if (!el) return;
+
+      document.getElementById('exp-z-badge').innerText = `Z = ${el.z}`;
+      document.getElementById('exp-nombre').innerText = el.n;
+      document.getElementById('exp-simbolo').innerText = el.s;
+      document.getElementById('exp-simbolo-z').innerText = el.z;
+      document.getElementById('exp-familia').innerText = `Grupo ${el.g} • ${el.f}`;
+      document.getElementById('exp-periodo').innerText = el.p;
+      document.getElementById('exp-grupo').innerText = el.g;
+      document.getElementById('exp-moeller-text').innerText = obtenerConfiguracionMoeller(el.z);
+
+      renderizarBohr(el.z, el.s);
+    }
+
+    function renderizarBohr(z, simbolo) {
+      const container = document.getElementById('bohr-container');
+      const infoCapas = document.getElementById('bohr-capas-info');
+      
+      const mascarasPrevias = container.querySelectorAll('.orbit, .electron');
+      mascarasPrevias.forEach(m => m.remove());
+
+      document.getElementById('bohr-nucleus-symbol').innerText = simbolo;
+      document.getElementById('bohr-nucleus-z').innerText = `p⁺ = ${z}`;
+
+      const capas = obtenerElectronesPorCapa(z);
+      infoCapas.innerHTML = '';
+
+      const baseRadius = 45;
+      const stepRadius = 18;
+
+      capas.forEach((numElectrones, idx) => {
+        const radius = baseRadius + (idx * stepRadius);
+
+        const orbit = document.createElement('div');
+        orbit.className = 'orbit';
+        orbit.style.width = `${radius * 2}px`;
+        orbit.style.height = `${radius * 2}px`;
+        container.appendChild(orbit);
+
+        for (let i = 0; i < numElectrones; i++) {
+          const angle = (i / numElectrones) * 2 * Math.PI;
+          const x = Math.cos(angle) * radius;
+          const y = Math.sin(angle) * radius;
+
+          const electron = document.createElement('div');
+          electron.className = 'electron';
+          electron.style.top = `calc(50% + ${y}px)`;
+          electron.style.left = `calc(50% + ${x}px)`;
+          container.appendChild(electron);
+        }
+
+        const nombresCapas = ['K', 'L', 'M', 'N', 'O', 'P', 'Q'];
+        infoCapas.innerHTML += `
+          <span class="px-2 py-1 bg-slate-100 border border-slate-200 rounded text-slate-700 font-mono">
+            Nivel ${idx + 1} (${nombresCapas[idx]}): <strong>${numElectrones} e⁻</strong>
+          </span>
+        `;
+      });
+    }
+
+    let quizEstado = {
+      vidas: 3,
+      puntos: 0,
+      racha: 0,
+      elementoActual: null,
+      configuracionUsuario: [],
+      subnivelPendiente: null
+    };
+
+    function iniciarModoDesafío() {
+      renderizarBotonesSubniveles();
+      siguientePreguntaQuiz();
+    }
+
+    function reiniciarJuego() {
+      quizEstado.vidas = 3;
+      quizEstado.puntos = 0;
+      quizEstado.racha = 0;
+      actualizarMarcadores();
+      siguientePreguntaQuiz();
+    }
+
+    function actualizarMarcadores() {
+      document.getElementById('quiz-vidas').innerText = `${quizEstado.vidas} / 3`;
+      document.getElementById('quiz-puntos').innerText = quizEstado.puntos;
+      document.getElementById('quiz-racha').innerText = quizEstado.racha;
+    }
+
+    function renderizarBotonesSubniveles() {
+      const container = document.getElementById('subnivel-buttons');
+      container.innerHTML = '';
+
+      SUBNIVELES_MOELLER.slice(0, 10).forEach(sub => {
+        const btn = document.createElement('button');
+        btn.className = 'px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-900 border border-blue-300 rounded-lg text-sm font-bold font-mono transition-all';
+        btn.innerText = sub.name;
+        btn.onclick = () => abrirSelectorElectrones(sub);
+        container.appendChild(btn);
+      });
+    }
+
+    function abrirSelectorElectrones(subnivel) {
+      quizEstado.subnivelPendiente = subnivel;
+      const modal = document.getElementById('electron-selector-modal');
+      const title = document.getElementById('selector-subnivel-title');
+      const numContainer = document.getElementById('selector-num-buttons');
+
+      title.innerText = `¿Cuántos electrones deseas añadir en ${subnivel.name}? (Máximo ${subnivel.max})`;
+      numContainer.innerHTML = '';
+
+      for (let i = 1; i <= subnivel.max; i++) {
+        const btn = document.createElement('button');
+        btn.className = 'px-3 py-1 bg-yellow-400 hover:bg-yellow-300 text-slate-900 rounded-lg font-mono font-bold text-sm shadow';
+        btn.innerText = `${subnivel.name}${convertirASuperindice(i)}`;
+        btn.onclick = () => agregarSubnivelAUsuario(subnivel.name, i);
+        numContainer.appendChild(btn);
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function agregarSubnivelAUsuario(nombreSubnivel, numElectrones) {
+      document.getElementById('electron-selector-modal').classList.add('hidden');
+      quizEstado.configuracionUsuario.push(`${nombreSubnivel}${convertirASuperindice(numElectrones)}`);
+      actualizarDisplayMoellerUsuario();
+    }
+
+    function borrarUltimoSubnivel() {
+      quizEstado.configuracionUsuario.pop();
+      actualizarDisplayMoellerUsuario();
+    }
+
+    function actualizarDisplayMoellerUsuario() {
+      const display = document.getElementById('quiz-moeller-display');
+      if (quizEstado.configuracionUsuario.length === 0) {
+        display.innerHTML = `<span class="text-slate-400 text-sm font-sans font-normal italic">Haz clic en los subniveles de abajo...</span>`;
+      } else {
+        display.innerText = quizEstado.configuracionUsuario.join(" ");
+      }
+    }
+
+    function siguientePreguntaQuiz() {
+      document.getElementById('quiz-feedback').classList.add('hidden');
+      document.getElementById('btn-comprobar').classList.remove('hidden');
+      document.getElementById('btn-siguiente').classList.add('hidden');
+
+      quizEstado.configuracionUsuario = [];
+      actualizarDisplayMoellerUsuario();
+      document.getElementById('quiz-input-periodo').value = '';
+      document.getElementById('quiz-input-grupo').value = '';
+      document.getElementById('quiz-select-familia').value = '';
+      document.getElementById('quiz-input-elemento').value = '';
+
+      const maxZ = 36;
+      const elRandom = ELEMENTOS[Math.floor(Math.random() * maxZ)];
+      quizEstado.elementoActual = elRandom;
+
+      document.getElementById('quiz-enunciado').innerText = `Analiza el átomo con Z = ${elRandom.z}`;
+      document.getElementById('quiz-subenunciado').innerText = `A partir de Z = ${elRandom.z}, determina su configuración electrónica, periodo, grupo, familia e identifica de qué elemento se trata.`;
+    }
+
+    function validarRespuestaQuiz() {
+      const el = quizEstado.elementoActual;
+      if (!el) return;
+
+      const confCorrecta = obtenerConfiguracionMoeller(el.z).trim();
+      const confUsuario = quizEstado.configuracionUsuario.join(" ").trim();
+      const periodoUsuario = parseInt(document.getElementById('quiz-input-periodo').value);
+      const grupoUsuario = parseInt(document.getElementById('quiz-input-grupo').value);
+      const familiaUsuario = document.getElementById('quiz-select-familia').value;
+      const elementoInput = document.getElementById('quiz-input-elemento').value.trim().toLowerCase();
+
+      let errores = [];
+
+      if (confUsuario !== confCorrecta) {
+        errores.push(`<strong>Configuración electrónica:</strong> Tu respuesta (<code>${confUsuario || 'vacía'}</code>) no coincide con la correcta: <code>${confCorrecta}</code>`);
+      }
+      if (periodoUsuario !== el.p) {
+        errores.push(`<strong>Periodo:</strong> Has indicado ${periodoUsuario || 'nada'}, pero la respuesta correcta es ${el.p}.`);
+      }
+      if (grupoUsuario !== el.g) {
+        errores.push(`<strong>Grupo:</strong> Has indicado ${grupoUsuario || 'nada'}, pero la respuesta correcta es ${el.g}.`);
+      }
+      if (familiaUsuario !== el.f) {
+        errores.push(`<strong>Familia:</strong> Has seleccionado "${familiaUsuario || 'ninguna'}", pero pertenece a <strong>${el.f}</strong>.`);
+      }
+
+      const esNombreCorrecto = elementoInput === el.n.toLowerCase();
+      const esSimboloCorrecto = elementoInput === el.s.toLowerCase();
+      if (!esNombreCorrecto && !esSimboloCorrecto) {
+        errores.push(`<strong>Elemento:</strong> Has escrito "${elementoInput || 'nada'}". El elemento con Z = ${el.z} es <strong>${el.n} (${el.s})</strong>.`);
+      }
+
+      const feedback = document.getElementById('quiz-feedback');
+      feedback.classList.remove('hidden');
+
+      if (errores.length === 0) {
+        quizEstado.puntos += 100 + (quizEstado.racha * 20);
+        quizEstado.racha += 1;
+        
+        feedback.className = "p-4 rounded-xl border-2 text-sm font-semibold bg-emerald-50 border-emerald-300 text-emerald-900 space-y-1";
+        feedback.innerHTML = `
+          <div class="text-base font-extrabold text-emerald-700">¡Impecable! 🎯 Has identificado el ${el.n} (${el.s}) correctamente</div>
+          <p>Has ganado +100 XP. ¡Sigue así!</p>
+        `;
+
+        document.getElementById('btn-comprobar').classList.add('hidden');
+        document.getElementById('btn-siguiente').classList.remove('hidden');
+      } else {
+        quizEstado.vidas -= 1;
+        quizEstado.racha = 0;
+
+        feedback.className = "p-4 rounded-xl border-2 text-sm font-semibold bg-rose-50 border-rose-300 text-rose-900 space-y-2";
+        feedback.innerHTML = `
+          <div class="text-base font-extrabold text-rose-700">¡Casi! Revisa tus respuestas:</div>
+          <ul class="list-disc pl-5 space-y-1 text-xs">
+            ${errores.map(e => `<li>${e}</li>`).join("")}
+          </ul>
+        `;
+
+        if (quizEstado.vidas <= 0) {
+          alert("¡Se te han agotado las vidas! Reiniciando partida...");
+          reiniciarJuego();
+          return;
+        }
+      }
+
+      actualizarMarcadores();
+    }
+
+    function cambiarTab(tab) {
+      document.getElementById('tab-explorador').classList.add('hidden');
+      document.getElementById('tab-desafio').classList.add('hidden');
+      document.getElementById('tab-moeller').classList.add('hidden');
+
+      document.getElementById('nav-explorador').className = "px-4 py-2 text-sm font-bold rounded-lg transition-all text-slate-600 hover:text-slate-900";
+      document.getElementById('nav-desafio').className = "px-4 py-2 text-sm font-bold rounded-lg transition-all text-slate-600 hover:text-slate-900";
+      document.getElementById('nav-moeller').className = "px-4 py-2 text-sm font-bold rounded-lg transition-all text-slate-600 hover:text-slate-900";
+
+      if (tab === 'explorador') {
+        document.getElementById('tab-explorador').classList.remove('hidden');
+        document.getElementById('nav-explorador').className = "px-4 py-2 text-sm font-bold rounded-lg transition-all bg-white text-blue-700 shadow-sm";
+      } else if (tab === 'desafio') {
+        document.getElementById('tab-desafio').classList.remove('hidden');
+        document.getElementById('nav-desafio').className = "px-4 py-2 text-sm font-bold rounded-lg transition-all bg-white text-blue-700 shadow-sm";
+        iniciarModoDesafío();
+      } else if (tab === 'moeller') {
+        document.getElementById('tab-moeller').classList.remove('hidden');
+        document.getElementById('nav-moeller').className = "px-4 py-2 text-sm font-bold rounded-lg transition-all bg-white text-blue-700 shadow-sm";
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      renderizarTablaPeriodica();
+      actualizarPanelExplorador();
+    });
+  </script>
+</body>
+</html>
